@@ -83,10 +83,9 @@
                                 <th class="td-c">START KM</th>
                                 <th class="td-c">END KM</th>
                                 <th class="td-c">TOTAL KM</th>
-                                <th class="td-c">START TIME</th>
-                                <th class="td-c">CLOSE TIME</th>
+                                <th class="td-c">From Loc.</th>
+                                <th class="td-c">To Loc.</th>
                                 <th class="td-c">TOTAL TIME</th>
-                                <th class="td-c">EXTRA HRS</th>
                                 <th class="td-c">Toll/ Parking</th>
                                 <th class="td-c">Remark</th>
                                 <th class="td-c">Action</th>
@@ -111,21 +110,15 @@
                                         {$v.total_km}
                                     </td>
                                     <td class="td-c">
-                                        {{$v.start_time}|date_format:"%I:%M %p"} 
+                                        {$v.from} 
                                     </td>
                                     <td class="td-c">
-                                        {{$v.close_time}|date_format:"%I:%M %p"} 
+                                        {$v.to} 
                                     </td>
                                     <td class="td-c">
                                         {{$v.total_time}|date_format:"%H:%M"} 
                                     </td>
-                                    <td class="td-c">
-                                        {if ($v.extra_time>'00:00:00')}
-                                            {$extra_hr=$extra_hr+{$v.extra_time}|date_format:"%H"}
-                                            {$extra_min=$extra_min+{$v.extra_time}|date_format:"%M"}
-                                            {{$v.extra_time}|date_format:"%H:%M"} 
-                                        {/if}
-                                    </td>
+                                    
                                     <td class="td-c">
                                         {if ($v.toll>0)}
                                             {$toll=$toll+$v.toll}
@@ -150,8 +143,7 @@
                         <th class="td-c">{$total_km}</th>
                         <th class="td-c"></th>
                         <th class="td-c"></th>
-                        <th class="td-c">EXTRA HRS</th>
-                        <th class="td-c">{{($extra_min+($extra_hr*60))/60}|string_format:"%.2f"} </th>
+                        <th class="td-c"></th>
                         <th class="td-c">{$toll}</th>
                         <th class="td-c"></th>
                         <th class="td-c"></th>

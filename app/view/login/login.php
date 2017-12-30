@@ -41,7 +41,6 @@ License: You must have a valid license purchased only from themeforest(the above
         <link href="/assets/admin/layout/css/layout.css" rel="stylesheet" type="text/css"/>
         <link href="/assets/admin/layout/css/themes/darkblue.css" rel="stylesheet" type="text/css" id="style_color"/>
         <link href="/assets/admin/layout/css/custom.css" rel="stylesheet" type="text/css"/>
-        <script src='https://www.google.com/recaptcha/api.js'></script>
         <!-- END THEME STYLES -->
         <link rel="shortcut icon" href="favicon.ico"/>
     </head>
@@ -97,57 +96,20 @@ License: You must have a valid license purchased only from themeforest(the above
                 <div class="form-group">
                     <!--ie8, ie9 does not support html5 placeholder, so we just show field title for that-->
                     <label class="control-label visible-ie8 visible-ie9">Email Id</label>
-                    <input class="form-control form-control-solid placeholder-no-fix" type="text"  placeholder="Username" name="username"/>
+                    <input class="form-control form-control-solid placeholder-no-fix" type="text" value="<?php echo $_COOKIE['svk_username']; ?>"  placeholder="Username" name="username"/>
                 </div>
                 <div class="form-group">
                     <label class="control-label visible-ie8 visible-ie9">Password</label>
                     <input class="form-control form-control-solid placeholder-no-fix" type="password" autocomplete="off" placeholder="Password" name="password"/>
                 </div>
-                <?php if ($this->showCaptcha) { ?>
-                    <div class="form-group">
-                        <div class="g-recaptcha" required data-sitekey="6LeIQAkTAAAAAJI3z5e5whFYyKslyENkXXvft3Of"></div>
-                    </div>
-                <?php } ?>
+       
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-success uppercase blue">Login</button>
-                    <a href="javascript:;" id="forget-password" class="forget-password">Forgot Password?</a>
                 </div>
 
-                <div class="create-account">
-                    <p>
-                        <a href="/home/register" class="uppercase">Create an account</a>
-                    </p>
-                </div>
             </form>
             <!-- END LOGIN FORM -->
-            <form class="forget-form" action="/login/forgotrequest" method="post" <?php
-            if ($this->type == 'forgot') {
-                echo 'style="display: block;"';
-            } else {
-                echo 'style="display: none;"';
-            }
-            ?>>
-                <h3>Forget Password ?</h3>
-                <p>
-                    Enter your e-mail address below to reset your password.
-                </p>
-
-                <div class="form-group">
-                    <input class="form-control placeholder-no-fix" type="text" autocomplete="off" placeholder="Email" name="email"/>
-                    <div class="form-group">
-                        <br>
-                        <form action="form.php" method="post">
-                            <div class="g-recaptcha" required data-sitekey="6LeIQAkTAAAAAJI3z5e5whFYyKslyENkXXvft3Of"></div>
-                        </form>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="back-btn" class="btn btn-default">Back</button>
-                        <button type="submit" class="btn btn-success uppercase pull-right blue">Submit</button>
-                    </div>
-                </div>
-
-            </form>
         </div>
         <!-- END LOGIN -->
         <!-- BEGIN JAVASCRIPTS(Load javascripts at bottom, this will reduce page load time) -->

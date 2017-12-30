@@ -1,10 +1,10 @@
 {
     "DEV": {
         "REPOSITORY": {
-            "DB1": "127.0.0.1",
-            "DB2": "ceyoneadmin",
-            "DB3": "ceyone@8989",
-            "DB4": "siddhivinayak"       
+            "DB1": "148.72.232.132",
+            "DB2": "user_cab_vendor",
+            "DB3": "swami498",
+            "DB4": "cab_vendor"
 },
         "LOG": {
             "CONF": "../app/lib/config/log4php_config.xml"
@@ -15,7 +15,7 @@
             "DB1": "127.0.0.1",
             "DB2": "root",
             "DB3": "swipezapp",
-            "DB4": "siddhivinayak"
+            "DB4": "cab_vendor"
         },
         "LOG": {
             "CONF": "../app/lib/config/log4php_config.xml"

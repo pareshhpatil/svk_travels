@@ -96,7 +96,7 @@ class Logsheet extends Controller {
             $invoice = $this->common->getDetails('outstation_invoice', 'invoice_id', $id);
             $invoice_detail = $this->common->getList('outstation_detail', 'invoice_id', $id, 'asc');
             $total = 0;
-            $total_gst=0;
+            $total_gst = 0;
             foreach ($invoice_detail as $row) {
                 $total = $total + $row['amount'];
             }
@@ -135,21 +135,32 @@ class Logsheet extends Controller {
         }
     }
 
-    function getexcel() {
+    function getexcel($id = null) {
         try {
-            $vehicle_id = isset($_POST['vehicle_id']) ? $_POST['vehicle_id'] : 0;
-            $company_id = isset($_POST['company_id']) ? $_POST['company_id'] : 0;
-            $date = new DateTime($_POST['date']);
+            if ($id != null) {
+                $invoice = $this->common->getDetails('logsheet_invoice', 'invoice_id', $id);
+                $vehicle_id = $invoice['vehicle_id'];
+                $company_id = $invoice['company_id'];
+                $date = new DateTime($invoice['date']);
+                $_POST['vehicle_id'] = $vehicle_id;
+                $_POST['company_id'] = $company_id;
+                $_POST['date'] = $invoice['date'];
+            } else {
+                $vehicle_id = isset($_POST['vehicle_id']) ? $_POST['vehicle_id'] : 0;
+                $company_id = isset($_POST['company_id']) ? $_POST['company_id'] : 0;
+                $date = new DateTime($_POST['date']);
+                $invoice = $this->model->getInvoice($date->format('Y-m-d'), $company_id, $vehicle_id);
+            }
             $list = $this->model->getExcel($date->format('Y-m-d'), $company_id, $vehicle_id);
-            $invoice = $this->model->getInvoice($date->format('Y-m-d'), $company_id, $vehicle_id);
             $int = 0;
 
             foreach ($list as $item) {
+                $type=$item['type'];
                 $list[$int]['encrypted_id'] = $this->encrypt->encode($item['logsheet_id']);
                 $int++;
             }
-            $vehicle = $this->common->getDetails('vehicle', 'vehicle_id', $_POST['vehicle_id']);
-            $company = $this->common->getDetails('company', 'company_id', $_POST['company_id']);
+            $vehicle = $this->common->getDetails('vehicle', 'vehicle_id', $vehicle_id);
+            $company = $this->common->getDetails('company', 'company_id', $company_id);
 
             $vehiclelist = $this->common->getList('vehicle', 'is_active', 1);
             $companylist = $this->common->getList('company', 'is_active', 1);
@@ -164,9 +175,14 @@ class Logsheet extends Controller {
             $this->smarty->assign("list", $list);
             $this->smarty->assign("date", $_POST['date']);
             $this->smarty->assign("title", "Logsheet list");
+            $this->smarty->assign("type", $type);
             $this->view->canonical = 'admin/supplier/viewlist';
             $this->view->render('header/list');
-            $this->smarty->display(VIEW . 'admin/logsheet/excel.tpl');
+            if ($type == 1) {
+                $this->smarty->display(VIEW . 'admin/logsheet/excel.tpl');
+            } else {
+                $this->smarty->display(VIEW . 'admin/logsheet/location_excel.tpl');
+            }
             $this->view->render('footer/list');
         } catch (Exception $e) {
             SwipezLogger::error(__CLASS__, '[E999]Error while listing driver Error: for user id [' . $this->session->get('userid') . '] ' . $e->getMessage());
@@ -177,15 +193,25 @@ class Logsheet extends Controller {
         try {
             $this->session->remove('file_name');
             $user_id = $this->session->get('userid');
+            $type = isset($_POST['type']) ? 2 : 1;
+            $pick_drop = isset($_POST['pickup']) ? 'PICKUP' : 'DROP';
             $vehicle_id = isset($_POST['vehicle_id']) ? $_POST['vehicle_id'] : 0;
             $company_id = isset($_POST['company_id']) ? $_POST['company_id'] : 0;
             $_POST['toll_amount'] = ($_POST['toll_amount'] > 0) ? $_POST['toll_amount'] : 0;
             $start_time = date('H:i:s', strtotime($_POST['start_time']));
             $close_time = date('H:i:s', strtotime($_POST['close_time']));
+            if ($type == 2) {
+                $start_time = '00:00:00';
+                $close_time = '00:00:00';
+            } else {
+                $pick_drop = '';
+                $_POST['from'] = '';
+                $_POST['to'] = '';
+            }
             $date = new DateTime($_POST['date']);
             $bill_date = new DateTime($_POST['bill_date']);
             $daynight = ($_POST['is_night'] == 1) ? 'Night' : 'Day';
-            $result = $this->model->saveLogsheetbill($vehicle_id, $company_id, 0, $date->format('Y-m-d'), $bill_date->format('Y-m-d'), $_POST['start_km'], $_POST['end_km'], $start_time, $close_time, $daynight, $_POST['remark'], $_POST['toll_amount'], $user_id);
+            $result = $this->model->saveLogsheetbill($vehicle_id, $company_id, 0, $date->format('Y-m-d'), $bill_date->format('Y-m-d'), $_POST['start_km'], $_POST['end_km'], $start_time, $close_time, $daynight, $_POST['remark'], $_POST['toll_amount'], $type, $pick_drop, $_POST['from'], $_POST['to'], $user_id);
             if ($result['message'] == 'success') {
                 $this->session->set('successMessage', 'Customer have been saved.');
             }
@@ -281,6 +307,7 @@ class Logsheet extends Controller {
     }
 
     function confirmlogsheetbill() {
+        $type = isset($_POST['type']) ? 2 : 1;
         $vehicle = $this->common->getDetails('vehicle', 'vehicle_id', $_POST['vehicle_id']);
         $driver = $this->common->getDetails('driver', 'driver_id', $_POST['driver_id']);
         $company = $this->common->getDetails('company', 'company_id', $_POST['company_id']);
@@ -293,8 +320,13 @@ class Logsheet extends Controller {
         echo ' <tr><td><b>Start KM:</b></td><td>' . $_POST['start_km'] . '</td></tr>';
         echo ' <tr><td><b>End KM:</b></td><td>' . $_POST['end_km'] . '</td></tr>';
         echo ' <tr><td><b>Total KM:</b></td><td>' . $totalkm . '</td></tr>';
-        echo ' <tr><td><b>Start Time:</b></td><td>' . date('h:i A', strtotime($_POST['start_time'])) . '</td></tr>';
-        echo ' <tr><td><b>Close Time:</b></td><td>' . date('h:i A', strtotime($_POST['close_time'])) . '</td></tr>';
+        if ($type == 1) {
+            echo ' <tr><td><b>Start Time:</b></td><td>' . date('h:i A', strtotime($_POST['start_time'])) . '</td></tr>';
+            echo ' <tr><td><b>Close Time:</b></td><td>' . date('h:i A', strtotime($_POST['close_time'])) . '</td></tr>';
+        } else {
+            echo ' <tr><td><b>From Location:</b></td><td>' . $_POST['from'] . '</td></tr>';
+            echo ' <tr><td><b>To Location:</b></td><td>' . $_POST['to'] . '</td></tr>';
+        }
         echo ' <tr><td><b>Toll:</b></td><td>' . $_POST['toll_amount'] . '</td></tr>';
         echo ' <tr><td><b>Remark:</b></td><td>' . $_POST['remark'] . '</td></tr>';
         echo '</tbody></table>';
@@ -327,11 +359,12 @@ class Logsheet extends Controller {
 
     function savelogsheet() {
         $date = new DateTime($_POST['date']);
+        $bill_date = new DateTime($_POST['bill_date']);
         if ($_POST['invoice_id'] > 0) {
 
-            $this->model->updateLogsheetInvoice($_POST['invoice_id'], $_POST['vehicle_id'], $_POST['company_id'], $date->format('Y-m-01'), $_POST['fix_qty'], $_POST['fix_rate'], $_POST['fix_amt'], $_POST['extra_day_qty'], $_POST['extra_day_rate'], $_POST['extra_day_amt'], $_POST['extra_km_qty'], $_POST['extra_km_rate'], $_POST['extra_km_amt'], $_POST['extra_hr_qty'], $_POST['extra_hr_rate'], $_POST['extra_hr_amt'], $_POST['br_down_qty'], $_POST['br_down_rate'], $_POST['br_down_amt'], $_POST['toll'], $this->session->get('userid'));
+            $this->model->updateLogsheetInvoice($_POST['invoice_id'], $_POST['vehicle_id'], $_POST['company_id'], $date->format('Y-m-01'), $bill_date->format('Y-m-d'), $_POST['fix_qty'], $_POST['fix_rate'], $_POST['fix_amt'], $_POST['extra_day_qty'], $_POST['extra_day_rate'], $_POST['extra_day_amt'], $_POST['extra_km_qty'], $_POST['extra_km_rate'], $_POST['extra_km_amt'], $_POST['extra_hr_qty'], $_POST['extra_hr_rate'], $_POST['extra_hr_amt'], $_POST['br_down_qty'], $_POST['br_down_rate'], $_POST['br_down_amt'], $_POST['toll'], $this->session->get('userid'));
         } else {
-            $this->model->saveLogsheetInvoice($_POST['vehicle_id'], $_POST['company_id'], $date->format('Y-m-01'), $_POST['fix_qty'], $_POST['fix_rate'], $_POST['fix_amt'], $_POST['extra_day_qty'], $_POST['extra_day_rate'], $_POST['extra_day_amt'], $_POST['extra_km_qty'], $_POST['extra_km_rate'], $_POST['extra_km_amt'], $_POST['extra_hr_qty'], $_POST['extra_hr_rate'], $_POST['extra_hr_amt'], $_POST['br_down_qty'], $_POST['br_down_rate'], $_POST['br_down_amt'], $_POST['toll'], $this->session->get('userid'));
+            $this->model->saveLogsheetInvoice($_POST['vehicle_id'], $_POST['company_id'], $date->format('Y-m-01'), $bill_date->format('Y-m-d'), $_POST['fix_qty'], $_POST['fix_rate'], $_POST['fix_amt'], $_POST['extra_day_qty'], $_POST['extra_day_rate'], $_POST['extra_day_amt'], $_POST['extra_km_qty'], $_POST['extra_km_rate'], $_POST['extra_km_amt'], $_POST['extra_hr_qty'], $_POST['extra_hr_rate'], $_POST['extra_hr_amt'], $_POST['br_down_qty'], $_POST['br_down_rate'], $_POST['br_down_amt'], $_POST['toll'],$_POST['type'], $this->session->get('userid'));
         }
         header("Location:/admin/logsheet/bill");
     }

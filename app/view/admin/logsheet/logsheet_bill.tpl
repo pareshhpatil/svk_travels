@@ -117,6 +117,7 @@
                                         <td class="td-c">
                                             <a   href="/admin/logsheet/printexcel/{$v.invoice_id}" target="_BLANK" class="btn btn-xs green"><i class="fa fa-file-excel-o"></i></a>
                                             <a   href="/admin/logsheet/printword/{$v.invoice_id}" target="_BLANK"  class="btn btn-xs blue"><i class="fa fa-file-word-o"></i></a>
+                                            <a   href="/admin/logsheet/getexcel/{$v.invoice_id}"  class="btn btn-xs yellow"><i class="fa fa-edit"></i></a>
                                         </td>
                                     </tr>
 
@@ -134,7 +135,12 @@
     <div class="row" style="display: none;" id="insert">
         <form action="" method="post" id="customerForm" onsubmit="return confirmlogsheet();" enctype="multipart/form-data" class="form-horizontal">
             <div class="col-md-6">
-
+                <div class="form-group">
+                    <label class="control-label col-md-4">Type<span class="required">* </span></label>
+                    <div class="col-md-7">
+                        <input type="checkbox" onchange="typechange(this.checked);"  name="type"  value="1" class="make-switch" data-on-text="&nbsp;Location&nbsp;&nbsp;" data-off-text="&nbsp;Normal&nbsp;">
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="control-label col-md-4">Vehicle<span class="required">* </span></label>
                     <div class="col-md-7">
@@ -176,36 +182,57 @@
                         <input type="number" id="endkm" required="" pattern="[0-9]*" name="end_km"   class="form-control" >
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="control-label col-md-4">Day/Night<span class="required">* </span></label>
-                    <div class="col-md-7">
-                        <input type="checkbox"  name="is_night"  value="1" class="make-switch" data-on-text="&nbsp;Night&nbsp;&nbsp;" data-off-text="&nbsp;Day&nbsp;">
+                <div id="normal">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Day/Night<span class="required">* </span></label>
+                        <div class="col-md-7">
+                            <input type="checkbox"  name="is_night"  value="1" class="make-switch" data-on-text="&nbsp;Night&nbsp;&nbsp;" data-off-text="&nbsp;Day&nbsp;">
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="control-label col-md-4">Start Time</label>
-                    <div class="col-md-7">
-                        <div class="input-group">
-                            <input type="text"  name="start_time" value="08:00 AM" readonly class="form-control timepicker timepicker-no-seconds">
-                            <span class="input-group-btn">
-                                <button class="btn default" type="button"><i class="fa fa-clock-o"></i></button>
-                            </span>
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Start Time</label>
+                        <div class="col-md-7">
+                            <div class="input-group">
+                                <input type="text"  name="start_time" value="08:00 AM" readonly class="form-control timepicker timepicker-no-seconds">
+                                <span class="input-group-btn">
+                                    <button class="btn default" type="button"><i class="fa fa-clock-o"></i></button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Close Time</label>
+                        <div class="col-md-7">
+                            <div class="input-group">
+                                <input type="text"  name="close_time" value="08:00 PM" readonly class="form-control timepicker timepicker-no-seconds">
+                                <span class="input-group-btn">
+                                    <button class="btn default" type="button"><i class="fa fa-clock-o"></i></button>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="control-label col-md-4">Close Time</label>
-                    <div class="col-md-7">
-                        <div class="input-group">
-                            <input type="text"  name="close_time" value="08:00 PM" readonly class="form-control timepicker timepicker-no-seconds">
-                            <span class="input-group-btn">
-                                <button class="btn default" type="button"><i class="fa fa-clock-o"></i></button>
-                            </span>
+                    <div id="location" style="display: none;">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Pickup/Drop<span class="required">* </span></label>
+                        <div class="col-md-7">
+                            <input type="checkbox" onchange="pickupdrop(this.checked);" name="pickup" checked=""  value="1" class="make-switch" data-on-text="&nbsp;Pickup&nbsp;&nbsp;" data-off-text="&nbsp;Drop&nbsp;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-4">From </label>
+                        <div class="col-md-7">
+                            <input type="text"  name="from" id="from_loc" value=""  class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-4">To</label>
+                        <div class="col-md-7">
+                            <input type="text"  name="to" id="to_loc" value="Company"  class="form-control">
                         </div>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label class="control-label col-md-4">Toll amount<span class="required">* </span></label>
                     <div class="col-md-7">
@@ -277,3 +304,33 @@
     </div>
     <!-- /.modal-dialog -->
 </div>
+
+<script>
+                            function  typechange(val)
+  {
+          if (val == true)
+          {
+                      document.getElementById('location').style.display = 'block';
+                      document.getElementById('normal').style.display = 'none';
+                  } else
+              {
+
+                          document.getElementById('location').style.display = 'none';
+                          document.getElementById('normal').style.display = 'block';
+                      }
+                  }
+                  
+                  function  pickupdrop(val)
+  {
+          if (val == false)
+          {
+                      document.getElementById('from_loc').value='company';
+                      document.getElementById('to_loc').value='';
+                  } else
+              {
+
+                          document.getElementById('to_loc').value='company';
+                      document.getElementById('from_loc').value='';
+                      }
+                  }
+</script>
