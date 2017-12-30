@@ -324,12 +324,12 @@
   {
           if (val == false)
           {
-                      document.getElementById('from_loc').value='company';
+                      document.getElementById('from_loc').value='Company';
                       document.getElementById('to_loc').value='';
                   } else
               {
 
-                          document.getElementById('to_loc').value='company';
+                          document.getElementById('to_loc').value='Company';
                       document.getElementById('from_loc').value='';
                       }
                   }
